@@ -19,17 +19,17 @@ func main() {
 	EmptyTopic := "empty"
 	IntTopic := "int"
 	// 空回调
-	emptyCallback := NewCallback("empty", MaxCallbackPriority, emptyHandler)
+	emptyCallback := callbacklib.NewCallback("empty", callbacklib.MaxCallbackPriority, emptyHandler)
 	// int回调
-    intCallback1 := NewCallback("int", MaxCallbackPriority, intHandler1)
-	intCallback2 := NewCallback("int", MaxCallbackPriority-1, intHandler2)
+    intCallback1 := callbacklib.NewCallback("int", callbacklib.MaxCallbackPriority, intHandler1)
+	intCallback2 := callbacklib.NewCallback("int", callbacklib.MaxCallbackPriority-1, intHandler2)
 	// 注册
-    RegisterCallback(emptyCallback)
-	RegisterCallback(intCallback1)
-	RegisterCallback(intCallback2)
+    callbacklib.RegisterCallback(emptyCallback)
+	callbacklib.RegisterCallback(intCallback1)
+	callbacklib.RegisterCallback(intCallback2)
 	// 发布数据
-    Publish(EmptyTopic, nil)
-	Publish(IntTopic, 3)
+    callbacklib.Publish(EmptyTopic, nil)
+	callbacklib.Publish(IntTopic, 3)
 }
 
 func emptyHandler(d any) {
