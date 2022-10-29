@@ -4,6 +4,7 @@ import (
 	"errors"
 	log "github.com/link-yundi/ylog"
 	"sort"
+	"sync"
 )
 
 /**
@@ -49,40 +50,37 @@ func NewCallback(topic string, priority CallbackPriority, handler Handler) *call
 }
 
 // ========================== 回调中枢 ==========================
-var mapTopic = map[string][]*callback{}
+var mapTopic = &sync.Map{}
 
-func has(topic string) bool {
-	if _, ok := mapTopic[topic]; ok {
-		return true
+func callbacks(topic string) []*callback {
+	if cbs, ok := mapTopic.Load(topic); ok {
+		return cbs.([]*callback)
 	}
-	return false
+	return make([]*callback, 0)
 }
 
 // 排序callback
-func sortCallback(topic string) {
-	if has(topic) {
-		sort.SliceStable(mapTopic[topic], func(i, j int) bool {
-			callbackI, callbackJ := mapTopic[topic][i], mapTopic[topic][j]
-			return callbackI.priority >= callbackJ.priority
-		})
-	}
-
+func sortCallbacks(topic string, cbs []*callback) {
+	sort.SliceStable(cbs, func(i, j int) bool {
+		callbackI, callbackJ := cbs[i], cbs[j]
+		return callbackI.priority >= callbackJ.priority
+	})
+	mapTopic.Store(topic, cbs)
 }
 
 func RegisterCallback(callback *callback) {
-	if has(callback.topic) {
-		msg := callback.topic + "回调已存在,再次注册将会按照级别依次触发"
-		log.Warn(msg)
-	}
-	mapTopic[callback.topic] = append(mapTopic[callback.topic], callback)
-	sortCallback(callback.topic)
+	cbs := callbacks(callback.topic)
+	cbs = append(cbs, callback)
+	sortCallbacks(callback.topic, cbs)
 }
 
 func Publish(topic string, data any) {
-	if has(topic) {
-		cbList := mapTopic[topic]
-		for _, cb := range cbList {
-			cb.handler(data)
-		}
+	cbs := callbacks(topic)
+	for _, cb := range cbs {
+		cb.handler(data)
 	}
+}
+
+func Delete(topic string) {
+	mapTopic.Delete(topic)
 }
