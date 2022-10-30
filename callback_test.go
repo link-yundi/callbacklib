@@ -16,15 +16,16 @@ Created on 2022-10-28 09:42
 func TestCallback(t *testing.T) {
 	EmptyTopic := "empty"
 	IntTopic := "int"
+	bus := NewCallbackBus()
 	// 空回调
 	emptyCallback := NewCallback("empty", MaxCallbackPriority, emptyHandler)
 	intCallback1 := NewCallback("int", MaxCallbackPriority, intHandler1)
 	intCallback2 := NewCallback("int", MaxCallbackPriority-1, intHandler2)
-	RegisterCallback(emptyCallback)
-	RegisterCallback(intCallback1)
-	RegisterCallback(intCallback2)
-	Publish(EmptyTopic, nil)
-	Publish(IntTopic, 3)
+	RegisterCallback(bus, emptyCallback)
+	RegisterCallback(bus, intCallback1)
+	RegisterCallback(bus, intCallback2)
+	Publish(bus, EmptyTopic, nil)
+	Publish(bus, IntTopic, 3)
 }
 
 func emptyHandler(d any) {

@@ -14,6 +14,7 @@ import (
     log "github.com/link-yundi/ylog"
 )
 
+var bus = NewCallbackBus()
 
 func main() {
 	EmptyTopic := "empty"
@@ -24,12 +25,12 @@ func main() {
     intCallback1 := callbacklib.NewCallback("int", callbacklib.MaxCallbackPriority, intHandler1)
 	intCallback2 := callbacklib.NewCallback("int", callbacklib.MaxCallbackPriority-1, intHandler2)
 	// 注册
-    callbacklib.RegisterCallback(emptyCallback)
-	callbacklib.RegisterCallback(intCallback1)
-	callbacklib.RegisterCallback(intCallback2)
+    callbacklib.RegisterCallback(bus, emptyCallback)
+	callbacklib.RegisterCallback(bus, intCallback1)
+	callbacklib.RegisterCallback(bus, intCallback2)
 	// 发布数据
-    callbacklib.Publish(EmptyTopic, nil)
-	callbacklib.Publish(IntTopic, 3)
+    callbacklib.Publish(bus, EmptyTopic, nil)
+	callbacklib.Publish(bus, IntTopic, 3)
 }
 
 func emptyHandler(d any) {
