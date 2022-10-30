@@ -50,17 +50,17 @@ func NewCallback(topic string, priority CallbackPriority, handler Handler) *call
 }
 
 // ========================== 回调中枢 ==========================
-type callbackBus struct {
+type CallbackBus struct {
 	mapTopic *sync.Map
 }
 
-func NewCallbackBus() *callbackBus {
-	return &callbackBus{
+func NewCallbackBus() *CallbackBus {
+	return &CallbackBus{
 		mapTopic: &sync.Map{},
 	}
 }
 
-func (cbb *callbackBus) callbacks(topic string) []*callback {
+func (cbb *CallbackBus) callbacks(topic string) []*callback {
 	if cbs, ok := cbb.mapTopic.Load(topic); ok {
 		return cbs.([]*callback)
 	}
@@ -68,7 +68,7 @@ func (cbb *callbackBus) callbacks(topic string) []*callback {
 }
 
 // 排序callback
-func (cbb *callbackBus) sortCallbacks(topic string, cbs []*callback) {
+func (cbb *CallbackBus) sortCallbacks(topic string, cbs []*callback) {
 	sort.SliceStable(cbs, func(i, j int) bool {
 		callbackI, callbackJ := cbs[i], cbs[j]
 		return callbackI.priority >= callbackJ.priority
@@ -76,19 +76,19 @@ func (cbb *callbackBus) sortCallbacks(topic string, cbs []*callback) {
 	cbb.mapTopic.Store(topic, cbs)
 }
 
-func RegisterCallback(bus *callbackBus, callback *callback) {
+func RegisterCallback(bus *CallbackBus, callback *callback) {
 	cbs := bus.callbacks(callback.topic)
 	cbs = append(cbs, callback)
 	bus.sortCallbacks(callback.topic, cbs)
 }
 
-func Publish(bus *callbackBus, topic string, data any) {
+func Publish(bus *CallbackBus, topic string, data any) {
 	cbs := bus.callbacks(topic)
 	for _, cb := range cbs {
 		cb.handler(data)
 	}
 }
 
-func Delete(bus *callbackBus, topic string) {
+func Delete(bus *CallbackBus, topic string) {
 	bus.mapTopic.Delete(topic)
 }
